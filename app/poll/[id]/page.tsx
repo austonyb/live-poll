@@ -1,13 +1,13 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, use } from "react"
 import { useRouter } from "next/navigation"
-import { getPollWithOptions, addVote, getVoteCounts } from "@/lib/demo-data"
+import { DatabaseService } from "@/lib/database"
 import type { PollWithOptions, VoteCount } from "@/types/database"
 
 interface PollPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function PollPage({ params }: PollPageProps) {
@@ -16,13 +16,17 @@ export default function PollPage({ params }: PollPageProps) {
   const [hasVoted, setHasVoted] = useState<boolean>(false)
   const [isVoting, setIsVoting] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  
+  // Unwrap params using React.use()
+  const { id } = use(params)
 
   useEffect(() => {
     loadPoll()
     loadVoteCounts()
 
-    // Simulate real-time updates by refreshing vote counts every 3 seconds
+    // Real-time updates by refreshing vote counts every 3 seconds
     const interval = setInterval(() => {
       if (!hasVoted) {
         loadVoteCounts()
@@ -30,26 +34,27 @@ export default function PollPage({ params }: PollPageProps) {
     }, 3000)
 
     return () => clearInterval(interval)
-  }, [params.id])
+  }, [id])
 
   const loadPoll = async (): Promise<void> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    const pollData = getPollWithOptions(params.id)
-
-    if (!pollData) {
+    try {
+      const pollData = await DatabaseService.getPollWithOptions(id)
+      setPoll(pollData)
+    } catch (err) {
+      console.error('Error loading poll:', err)
+      setError('Failed to load poll')
+    } finally {
       setIsLoading(false)
-      return
     }
-
-    setPoll(pollData)
-    setIsLoading(false)
   }
 
-  const loadVoteCounts = (): void => {
-    const counts = getVoteCounts(params.id)
-    setVoteCounts(counts)
+  const loadVoteCounts = async (): Promise<void> => {
+    try {
+      const counts = await DatabaseService.getVoteCounts(id)
+      setVoteCounts(counts)
+    } catch (err) {
+      console.error('Error loading vote counts:', err)
+    }
   }
 
   const vote = async (optionId: string): Promise<void> => {
@@ -58,15 +63,12 @@ export default function PollPage({ params }: PollPageProps) {
     setIsVoting(true)
 
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      addVote(params.id, optionId)
-      loadVoteCounts()
+      await DatabaseService.addVote(id, optionId)
+      await loadVoteCounts()
       setHasVoted(true)
     } catch (error) {
       console.error("Error voting:", error)
-      alert("Failed to vote")
+      setError("Failed to record vote. Please try again.")
     } finally {
       setIsVoting(false)
     }
@@ -98,6 +100,23 @@ export default function PollPage({ params }: PollPageProps) {
     )
   }
 
+  if (error && !poll) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Poll</h1>
+          <p className="text-red-600 mb-6">{error}</p>
+          <button
+            onClick={() => router.push("/")}
+            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (!poll) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -123,6 +142,12 @@ export default function PollPage({ params }: PollPageProps) {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{poll.question}</h1>
             <p className="text-gray-600">{hasVoted ? "Thank you for voting!" : "Click an option to vote"}</p>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
 
           <div className="space-y-4 mb-8">
             {poll.options.map((option) => {

@@ -1,30 +1,28 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { addPoll } from "@/lib/demo-data"
+import { DatabaseService } from "@/lib/database"
 
 export default function CreatePoll() {
   const [question, setQuestion] = useState<string>("")
   const [options, setOptions] = useState<string[]>(["", ""])
   const [isCreating, setIsCreating] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   const createPoll = async (): Promise<void> => {
     if (!question.trim() || options.some((opt) => !opt.trim())) return
 
     setIsCreating(true)
+    setError(null)
 
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
       const filteredOptions = options.filter((opt) => opt.trim())
-      const pollId = addPoll(question.trim(), filteredOptions)
-
+      const pollId = await DatabaseService.createPoll(question.trim(), filteredOptions)
       router.push(`/poll/${pollId}`)
     } catch (error) {
       console.error("Error creating poll:", error)
-      alert("Failed to create poll")
+      setError("Failed to create poll. Please try again.")
     } finally {
       setIsCreating(false)
     }
@@ -55,6 +53,12 @@ export default function CreatePoll() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">Create a Poll</h1>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2 text-gray-700">Question</label>
             <input
@@ -63,6 +67,7 @@ export default function CreatePoll() {
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="What's your question?"
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              disabled={isCreating}
             />
           </div>
 
@@ -76,18 +81,24 @@ export default function CreatePoll() {
                   onChange={(e) => updateOption(index, e.target.value)}
                   placeholder={`Option ${index + 1}`}
                   className="flex-1 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  disabled={isCreating}
                 />
                 {options.length > 2 && (
                   <button
                     onClick={() => removeOption(index)}
-                    className="ml-2 px-3 py-2 text-red-600 hover:text-red-800"
+                    className="ml-2 px-3 py-2 text-red-600 hover:text-red-800 disabled:opacity-50"
+                    disabled={isCreating}
                   >
                     ×
                   </button>
                 )}
               </div>
             ))}
-            <button onClick={addOption} className="text-blue-500 text-sm hover:text-blue-700 mt-2">
+            <button 
+              onClick={addOption} 
+              className="text-blue-500 text-sm hover:text-blue-700 mt-2 disabled:opacity-50"
+              disabled={isCreating}
+            >
               + Add another option
             </button>
           </div>
@@ -101,7 +112,11 @@ export default function CreatePoll() {
           </button>
 
           <div className="mt-4 text-center">
-            <button onClick={() => router.push("/")} className="text-gray-500 hover:text-gray-700 text-sm">
+            <button 
+              onClick={() => router.push("/")} 
+              className="text-gray-500 hover:text-gray-700 text-sm disabled:opacity-50"
+              disabled={isCreating}
+            >
               ← Back to Home
             </button>
           </div>
