@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { DatabaseService } from "@/lib/database"
+import { useSupabaseRealtime } from "@/hooks/use-supabase-realtime"
 import type { Poll } from "@/types/database"
 
 // Force dynamic rendering
@@ -28,6 +29,16 @@ export default function HomePage() {
       setIsLoading(false)
     }
   }
+
+  // Set up real-time subscription for polls
+  useSupabaseRealtime({
+    table: 'polls',
+    event: '*',
+    onUpdate: (payload) => {
+      console.log('Real-time polls update:', payload)
+      loadPolls()
+    }
+  })
 
   return (
     <div className="min-h-screen bg-gray-50">

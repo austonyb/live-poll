@@ -24,7 +24,7 @@ This is a Next.js 15 live polling application using TypeScript and Tailwind CSS.
 - Database operations handled by `DatabaseService` class in `lib/database.ts`
 - Polls are created via `DatabaseService.createPoll()` which inserts poll + options
 - Voting is handled by `DatabaseService.addVote()` which records votes in database
-- Real-time updates via polling intervals (3-second refresh cycles)
+- **Real-time updates via Supabase real-time subscriptions** (instant updates)
 
 ### Page Structure
 - `/` - Home page displaying recent polls from database with loading states
@@ -39,9 +39,16 @@ This is a Next.js 15 live polling application using TypeScript and Tailwind CSS.
 ### Important Patterns
 - TypeScript path aliases configured with `@/*` pointing to root
 - Client-side state management using React hooks
-- Async/await patterns with simulated API delays
+- **Real-time subscriptions** via custom `useSupabaseRealtime` hook
+- Async/await patterns for database operations
 - Error handling with try/catch blocks and user feedback
 - Form validation and disabled state management
+
+### Real-time Features
+- **Polls list**: Automatically updates when new polls are created
+- **Vote counts**: Instantly reflect new votes across all connected clients
+- **Custom hook**: `useSupabaseRealtime` for reusable subscription management
+- **Automatic cleanup**: Subscriptions properly cleaned up on component unmount
 
 ### Dependencies
 - React 19 with Next.js 15

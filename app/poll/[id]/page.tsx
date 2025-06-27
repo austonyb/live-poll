@@ -2,6 +2,7 @@
 import { useEffect, useState, use } from "react"
 import { useRouter } from "next/navigation"
 import { DatabaseService } from "@/lib/database"
+import { useSupabaseRealtime } from "@/hooks/use-supabase-realtime"
 import type { PollWithOptions, VoteCount } from "@/types/database"
 
 // Force dynamic rendering
@@ -28,16 +29,18 @@ export default function PollPage({ params }: PollPageProps) {
   useEffect(() => {
     loadPoll()
     loadVoteCounts()
-
-    // Real-time updates by refreshing vote counts every 3 seconds
-    const interval = setInterval(() => {
-      if (!hasVoted) {
-        loadVoteCounts()
-      }
-    }, 3000)
-
-    return () => clearInterval(interval)
   }, [id])
+
+  // Set up real-time subscription for votes on this specific poll
+  useSupabaseRealtime({
+    table: 'votes',
+    event: '*',
+    filter: `poll_id=eq.${id}`,
+    onUpdate: (payload) => {
+      console.log('Real-time vote update:', payload)
+      loadVoteCounts()
+    }
+  })
 
   const loadPoll = async (): Promise<void> => {
     try {
@@ -67,8 +70,8 @@ export default function PollPage({ params }: PollPageProps) {
 
     try {
       await DatabaseService.addVote(id, optionId)
-      await loadVoteCounts()
       setHasVoted(true)
+      // Vote counts will be updated automatically via real-time subscription
     } catch (error) {
       console.error("Error voting:", error)
       setError("Failed to record vote. Please try again.")
