@@ -4,6 +4,9 @@ import Link from "next/link"
 import { DatabaseService } from "@/lib/database"
 import type { Poll } from "@/types/database"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default function HomePage() {
   const [polls, setPolls] = useState<Poll[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -30,7 +33,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto py-12 px-4">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Live Polling App</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Live Polling App for the team</h1>
           <p className="text-xl text-gray-600 mb-8">Create polls and see results update in real-time</p>
           <Link
             href="/create"

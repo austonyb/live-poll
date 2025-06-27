@@ -1,10 +1,11 @@
-import { supabase } from './supabase'
+import { getSupabaseClient } from './supabase'
 import type { Poll, Option, Vote, PollWithOptions, VoteCount } from '@/types/database'
 import type { PollInsert, OptionInsert, VoteInsert } from '@/types/supabase'
 
 export class DatabaseService {
   // Poll operations
   static async getAllPolls(): Promise<Poll[]> {
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('polls')
       .select('*')
@@ -15,6 +16,7 @@ export class DatabaseService {
   }
 
   static async getPollById(id: string): Promise<Poll | null> {
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('polls')
       .select('*')
@@ -29,6 +31,7 @@ export class DatabaseService {
   }
 
   static async getPollWithOptions(pollId: string): Promise<PollWithOptions | null> {
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('polls')
       .select(`
@@ -54,6 +57,7 @@ export class DatabaseService {
         created_by: null, // null for anonymous users (no auth.users reference)
       }
 
+      const supabase = getSupabaseClient()
       const { data: poll, error: pollError } = await supabase
         .from('polls')
         .insert([pollInsert])
@@ -101,6 +105,7 @@ export class DatabaseService {
       user_id: userId || null, // null for anonymous users
     }
 
+    const supabase = getSupabaseClient()
     const { error } = await supabase
       .from('votes')
       .insert([voteInsert])
@@ -112,6 +117,7 @@ export class DatabaseService {
   }
 
   static async getVoteCounts(pollId: string): Promise<VoteCount[]> {
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('votes')
       .select('option_id')
@@ -133,6 +139,7 @@ export class DatabaseService {
 
   // Option operations
   static async getOptionsByPollId(pollId: string): Promise<Option[]> {
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('options')
       .select('*')

@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation"
 import { DatabaseService } from "@/lib/database"
 import type { PollWithOptions, VoteCount } from "@/types/database"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 interface PollPageProps {
   params: Promise<{
     id: string

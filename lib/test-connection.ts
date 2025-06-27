@@ -1,10 +1,11 @@
-import { supabase } from './supabase'
+import { getSupabaseClient } from './supabase'
 
 export async function testDatabaseConnection() {
   try {
     console.log('Testing Supabase connection...')
     
     // Test basic connection
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('polls')
       .select('count(*)')
@@ -43,6 +44,7 @@ export async function checkTablesExist() {
     
     for (const table of tables) {
       try {
+        const supabase = getSupabaseClient()
         const { data, error } = await supabase
           .from(table)
           .select('count(*)')

@@ -3,6 +3,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { DatabaseService } from "@/lib/database"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default function CreatePoll() {
   const [question, setQuestion] = useState<string>("")
   const [options, setOptions] = useState<string[]>(["", ""])
