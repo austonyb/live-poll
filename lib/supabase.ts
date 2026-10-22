@@ -18,7 +18,7 @@ export const supabase = (() => {
   try {
     return getSupabaseClient()
   } catch {
-    // Return a mock client during build time when env vars might not be available
-    return null as any
+    // Env vars are absent during some builds; callers use getSupabaseClient().
+    return null
   }
 })()
