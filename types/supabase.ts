@@ -21,6 +21,7 @@ export interface Database {
           created_by?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       options: {
         Row: {
@@ -38,6 +39,7 @@ export interface Database {
           poll_id?: string
           text?: string
         }
+        Relationships: []
       }
       votes: {
         Row: {
@@ -58,8 +60,11 @@ export interface Database {
           option_id?: string
           user_id?: string | null
         }
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
   }
 }
 

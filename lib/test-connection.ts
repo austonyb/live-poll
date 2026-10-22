@@ -39,8 +39,8 @@ export async function checkTablesExist() {
   try {
     console.log('Checking if tables exist...')
     
-    const tables = ['polls', 'options', 'votes']
-    const results = {}
+    const tables = ['polls', 'options', 'votes'] as const
+    const results: Record<string, { exists: boolean; error?: string }> = {}
     
     for (const table of tables) {
       try {
@@ -57,7 +57,7 @@ export async function checkTablesExist() {
       } catch (err) {
         results[table] = {
           exists: false,
-          error: err.message
+          error: err instanceof Error ? err.message : String(err)
         }
       }
     }
